@@ -1,5 +1,7 @@
 import { where } from "sequelize/dist/index.js";
 import db from "../models/index";
+import bcrypt from 'bcryptjs';
+import { checkEmailExist, checkPhoneExist, hashUserPassword } from './loginRegisterService'
 
 const getAllUser = async () => {
     try {
@@ -38,9 +40,11 @@ const getUserWithPagination = async (page, limit) => {
         const { count, rows } = await db.User.findAndCountAll({
             offset: offset,
             limit: limit,
-            attributes: ['id', 'username', 'email', 'phone', 'sex'],
-            include: { model: db.Group, attributes: ['name', 'description'], },
-            nest: true
+            attributes: ['id', 'username', 'email', 'phone', 'sex', 'address'],
+            include: { model: db.Group, attributes: ['name', 'description', 'id'], },
+            nest: true,
+            order: [['id', 'DESC']] // or 'ASC'
+
         })
 
         let totalPages = Math.ceil(count / limit)
@@ -65,8 +69,29 @@ const getUserWithPagination = async (page, limit) => {
 }
 
 const createNewUser = async (data) => {
+    //check email is exist
+    let isEmailExist = await checkEmailExist(data.email);
+    if (isEmailExist === true) {
+        return {
+            EM: 'The email is already exist',
+            EC: 1,
+            DT: "email"
+        }
+    }
+    //check phonenumber is exist
+    let isPhoneExist = await checkPhoneExist(data.phone);
+    if (isPhoneExist === true) {
+        return {
+            EM: 'The phone number is already exist',
+            EC: 1,
+            DT: "phone"
+        }
+    }
+    //hash user password
+    let hashPassword = hashUserPassword(data.password);
+
     try {
-        await db.User.create(data)
+        await db.User.create({ ...data, password: hashPassword })
         return {
             EM: 'create Ok',
             EC: 0,
@@ -84,29 +109,46 @@ const createNewUser = async (data) => {
 
 const updateUser = async (data) => {
     try {
+        if (!data.groupId) {
+            return {
+                EM: 'Error with empty groupId',
+                EC: 1,
+                DT: 'group'
+            };
+        }
+        // Kiểm tra user tồn tại
         let user = await db.User.findOne({
             where: { id: data.id }
-        })
+        });
         if (user) {
             //update
             await user.update({
-                email: data.email,
-                phone: data.phone,
+                username: data.username,
+                address: data.address,
                 sex: data.sex,
-
+                groupId: data.groupId,
             })
-        } else {
-            //not found
             return {
-                EM: 'not found user',
-                EC: 1,
-                DT: []
-            }
+                EM: 'Update user success',
+                EC: 0,
+                DT: ''
+            };
+        } else {
+            return {
+                EM: 'User not found',
+                EC: 2,
+                DT: ''
+            };
         }
     } catch (error) {
-        console.log(error)
+        console.log(error);
+        return {
+            EM: 'Something went wrong with the service',
+            EC: 1,
+            DT: []
+        };
     }
-}
+};
 
 const deleteUser = async (id) => {
     try {
