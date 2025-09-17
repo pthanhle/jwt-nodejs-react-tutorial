@@ -10,8 +10,13 @@ const router = express.Router();
  * @param {*} app : express app
  */
 
+const testMiddleware = (req, res, next) => {
+    console.log("call a middleware")
+    next();
+}
 
 const initApiRoutes = (app) => {
+
     //path, handler
 
     //rest api
