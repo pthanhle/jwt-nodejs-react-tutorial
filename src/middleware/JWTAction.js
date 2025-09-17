@@ -2,6 +2,8 @@ import { name } from "ejs";
 import jwt from 'jsonwebtoken';
 require("dotenv").config();
 
+const nonSecurePaths = ['/', '/login', '/register'];
+
 const createJWT = (payload) => {
     let key = process.env.JWT_SECRET
     let token = null
@@ -20,12 +22,14 @@ const verifyToken = (token) => {
     try {
         decoded = jwt.verify(token, key)
     } catch (error) {
-        console.log(err)
+        console.log(error)
     }
     return decoded;
 }
 
 const checkUserJWT = (req, res, next) => {
+    if (nonSecurePaths.includes(req.path)) return next();
+
     let cookies = req.cookies
     if (cookies && cookies.jwt) {
         let token = cookies.jwt;
@@ -50,11 +54,13 @@ const checkUserJWT = (req, res, next) => {
 }
 
 const checkPermission = (req, res, next) => {
+    if (nonSecurePaths.includes(req.path)) return next();
+
     if (req.user) {
         let email = req.user.email
         let roles = req.user.groupWithRoles.Roles
         let currenturl = req.path
-        if (!roles || roles.lenght === 0) {
+        if (!roles || roles.length === 0) {
             return res.status(403).json({
                 EC: -1,
                 DT: '',
