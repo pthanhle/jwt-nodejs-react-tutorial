@@ -13,10 +13,21 @@
     "@babel/core": "7.15.4",
     "@babel/node": "7.15.4",
     "@babel/preset-env": "7.15.4",
-    "body-parser": "1.19.1",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "2.4.3",
+    "bluebird": "3.7.2",
+    "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "10.0.0",
     "ejs": "3.1.6",
-    "express": "4.17.2",
-    "nodemon": "2.0.15"
+    "express": "^5.1.0",
+    "jsonwebtoken": "8.5.1",
+    "lodash": "4.17.21",
+    "mysql2": "2.3.3",
+    "nodemon": "2.0.15",
+    "path-to-regexp": "^8.3.0",
+    "sequelize": "6.13.0",
+    "sequelize-cli": "6.3.0"
   }
 }
